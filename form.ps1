@@ -118,8 +118,8 @@ else{
     Register-ScheduledTask -TaskName $NameJob -Trigger $t -Settings $o -Action $a
     $p = Get-ScheduledTask $NameJob | % Principal
     $p.RunLevel = "Highest"
-    $taskPrincipal = New-ScheduledTaskPrincipal -UserId 'Control\control' -RunLevel Highest
-    Set-ScheduledTask -TaskName $NameJob -User $taskPrincipal.UserID -Password 'Pf,jlfqrf5'
+    $taskPrincipal = New-ScheduledTaskPrincipal -UserId 'Domen\Usver' -RunLevel Highest
+    Set-ScheduledTask -TaskName $NameJob -User $taskPrincipal.UserID -Password 'Morkovka10'
 }
 }}}
 
@@ -368,7 +368,7 @@ $main_form.Controls.Add($Label16)
 $TextBox15 = New-Object System.Windows.Forms.TextBox
 $TextBox15.Size = New-Object System.Drawing.Size(100,10)
 $TextBox15.Location  = New-Object System.Drawing.Point(100,470)
-$TextBox15.Text = 'control'
+$TextBox15.Text = 'UsVer'
 $main_form.Controls.Add($TextBox15)
 
 $Label17 = New-Object System.Windows.Forms.Label
@@ -380,7 +380,7 @@ $main_form.Controls.Add($Label17)
 $TextBox17 = New-Object System.Windows.Forms.TextBox
 $TextBox17.Size = New-Object System.Drawing.Size(100,10)
 $TextBox17.Location  = New-Object System.Drawing.Point(100,500)
-$TextBox17.Text = '"Pf,jlfqrf5"'
+$TextBox17.Text = '"Morkovka10"'
 $main_form.Controls.Add($TextBox17)
 
 $main_form.ShowDialog()
