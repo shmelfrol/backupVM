@@ -100,8 +100,17 @@ function SetVMStatus ($vmoff, $vm, $LOG){
 
 function ExportVM ($vm, $fullpath, $LOG){
        $vmstate= get-vm $vm
+
        write "$(get-date -format "dd.MM.yy.HH.mm.ss") пытаемся экспортировать $vm в $fullpath" | out-file $LOG -append
 	   Export-VM -Name $vm -Path $fullpath -ErrorAction Stop
+    #проверка бекапа
+       if(Test-Path "$fullpath\$vm\Virtual Hard Disks\*.vhdx"){
+           Send-MailMessage -From 'it-events@xxx.ru' -To 'it-events@xxx.ru' -Subject "$(get-date -format "dd.MM.yy.HH.mm.ss") Backup $vm OK" -Body "Backup $vm OK" –SmtpServer 'xxxx.ru' -Encoding 'UTF8'
+           write "$(get-date -format "dd.MM.yy.HH.mm.ss") 'экспорт $vm в $fullpath OK" | out-file $LOG -append
+       }else{
+           Send-MailMessage -From 'it-events@xxx.ru' -To 'it-events@xxx.ru' -Subject "$(get-date -format "dd.MM.yy.HH.mm.ss") Backup $vm ERROr" -Body "Backup $vm ERROR" –SmtpServer 'xxxx.ru' -Encoding 'UTF8'
+           write "$(get-date -format "dd.MM.yy.HH.mm.ss") 'экспорт $vm в $fullpath ERRor" | out-file $LOG -append
+       }
        write "$(get-date -format "dd.MM.yy.HH.mm.ss") Возобновляем работу $vm" | out-file $LOG -append
        if ($vmstate.state -ne "Running"){Start-VM $vm -ErrorAction Stop}
 }
