@@ -6,7 +6,6 @@ $Paths="$path\$vm"
 $LOG="$LogPath\$vm.txt"
 $MinFree=$MinFreeSpace
 $MaxFolder=$MaxFolderSize
-$h= Get-ClusterNode
 $blade= hostname
 
 
@@ -109,6 +108,7 @@ function ExportVM ($vm, $fullpath, $LOG){
 
 
 if($cluster -eq 1){
+$h= Get-ClusterNode
 foreach($i in $h){
 $vms=Get-ClusterNode $i.name | Get-Clusterresource| ?{$_.ResourceType -eq 'Virtual Machine'}|Get-Vm
 foreach ($cn in $vms){
