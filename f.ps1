@@ -102,6 +102,9 @@ function SetVMStatus ($vmoff, $vm, $LOG){
 function ExportVM ($vm, $fullpath, $LOG){
        $starttime=get-date
        $vmstate= get-vm $vm
+       $to='it-eventss@mail.ru'
+       $from='it-eventss@mail.ru'
+       $mailserver='mail.ru'
        write "$(get-date -format "dd.MM.yy.HH.mm.ss") пытаемся экспортировать $vm в $fullpath" | out-file $LOG -append
 	   Export-VM -Name $vm -Path $fullpath -ErrorAction Stop
        $endtime=get-date
@@ -109,10 +112,6 @@ function ExportVM ($vm, $fullpath, $LOG){
        write "$(get-date -format "dd.MM.yy.HH.mm.ss") Возобновляем работу $vm" | out-file $LOG -append
       #проверка бекапа
        if(Test-Path "$fullpath\$vm\Virtual Hard Disks\*.vhdx"){
-
-       $to='it-events@maill.ru'
-       $from='it-events@maill.ru'
-       $mailserver='mail.ru'
            $FolderSize = [math]::Round((Get-ChildItem $fullpath\$vm -recurse -Force | Measure-Object -Property Length -Sum).Sum / 1Gb, 2)
            Send-MailMessage -From $from -To $to -Subject "$(get-date -format "dd.MM.yy.HH.mm.ss") Backup $vm OK ($duration min, $FolderSize Gb)" -Body "Backup $vm OK ($duration min), VM Size - $FolderSize Gb" –SmtpServer $mailserver -Encoding 'UTF8'
            write "$(get-date -format "dd.MM.yy.HH.mm.ss") 'экспорт $vm в $fullpath OK" | out-file $LOG -append
