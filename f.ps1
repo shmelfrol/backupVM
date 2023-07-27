@@ -25,6 +25,7 @@ write "$(get-date -format "dd.MM.yy.HH.mm.ss") папка для бекапов сейчас имеет ра
 write "$(get-date -format "dd.MM.yy.HH.mm.ss") необходимое место для бекапа: $MinFreeSpace" | out-file  $LOG -append
 }
 
+
 function DelOldFolders ($Paths, $K, $LOG){
 write "$(get-date -format "dd.MM.yy.HH.mm.ss") FUNCTIONNNNNNNNNNNNNNNNN2!!!!!!!!!!!!" | out-file  $LOG -append
     $folder=$Paths
@@ -99,19 +100,23 @@ function SetVMStatus ($vmoff, $vm, $LOG){
 }
 
 function ExportVM ($vm, $fullpath, $LOG){
+       $starttime=get-date
        $vmstate= get-vm $vm
-
        write "$(get-date -format "dd.MM.yy.HH.mm.ss") пытаемся экспортировать $vm в $fullpath" | out-file $LOG -append
 	   Export-VM -Name $vm -Path $fullpath -ErrorAction Stop
-    #проверка бекапа
+       $endtime=get-date
+       $duration= [math]::Round(($endtime - $starttime).TotalMinutes, 2)
+       write "$(get-date -format "dd.MM.yy.HH.mm.ss") Возобновляем работу $vm" | out-file $LOG -append
+      #проверка бекапа
        if(Test-Path "$fullpath\$vm\Virtual Hard Disks\*.vhdx"){
-           Send-MailMessage -From 'it-events@xxx.ru' -To 'it-events@xxx.ru' -Subject "$(get-date -format "dd.MM.yy.HH.mm.ss") Backup $vm OK" -Body "Backup $vm OK" –SmtpServer 'xxxx.ru' -Encoding 'UTF8'
+           $FolderSize = [math]::Round((Get-ChildItem $fullpath\$vm -recurse -Force | Measure-Object -Property Length -Sum).Sum / 1Gb, 2)
+           Send-MailMessage -From 'it-events@kubstu.ru' -To 'it-events@kubstu.ru' -Subject "$(get-date -format "dd.MM.yy.HH.mm.ss") Backup $vm OK ($duration min, $FolderSize Gb)" -Body "Backup $vm OK ($duration min), VM Size - $FolderSize Gb" –SmtpServer 'mail.kubstu.ru' -Encoding 'UTF8'
            write "$(get-date -format "dd.MM.yy.HH.mm.ss") 'экспорт $vm в $fullpath OK" | out-file $LOG -append
        }else{
-           Send-MailMessage -From 'it-events@xxx.ru' -To 'it-events@xxx.ru' -Subject "$(get-date -format "dd.MM.yy.HH.mm.ss") Backup $vm ERROr" -Body "Backup $vm ERROR" –SmtpServer 'xxxx.ru' -Encoding 'UTF8'
+           Send-MailMessage -From 'it-events@kubstu.ru' -To 'it-events@kubstu.ru' -Subject "$(get-date -format "dd.MM.yy.HH.mm.ss") Backup $vm ERROr" -Body "Backup $vm ERROR" –SmtpServer 'mail.kubstu.ru' -Encoding 'UTF8'
            write "$(get-date -format "dd.MM.yy.HH.mm.ss") 'экспорт $vm в $fullpath ERRor" | out-file $LOG -append
        }
-       write "$(get-date -format "dd.MM.yy.HH.mm.ss") Возобновляем работу $vm" | out-file $LOG -append
+
        if ($vmstate.state -ne "Running"){Start-VM $vm -ErrorAction Stop}
 }
 
@@ -189,6 +194,8 @@ if ($cn.name -eq $VmName){
 
                     #экспорт виртуальной машины
                     ExportVM -vm $vm -fullpath $fullpaths -LOG $LOGs
+
+
 	            }
 	            catch {
                     $paths | Out-File $LOGs -append
