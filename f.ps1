@@ -109,11 +109,15 @@ function ExportVM ($vm, $fullpath, $LOG){
        write "$(get-date -format "dd.MM.yy.HH.mm.ss") Возобновляем работу $vm" | out-file $LOG -append
       #проверка бекапа
        if(Test-Path "$fullpath\$vm\Virtual Hard Disks\*.vhdx"){
+
+       $to='it-events@maill.ru'
+       $from='it-events@maill.ru'
+       $mailserver='mail.ru'
            $FolderSize = [math]::Round((Get-ChildItem $fullpath\$vm -recurse -Force | Measure-Object -Property Length -Sum).Sum / 1Gb, 2)
-           Send-MailMessage -From 'it-events@kubstu.ru' -To 'it-events@kubstu.ru' -Subject "$(get-date -format "dd.MM.yy.HH.mm.ss") Backup $vm OK ($duration min, $FolderSize Gb)" -Body "Backup $vm OK ($duration min), VM Size - $FolderSize Gb" –SmtpServer 'mail.kubstu.ru' -Encoding 'UTF8'
+           Send-MailMessage -From $from -To $to -Subject "$(get-date -format "dd.MM.yy.HH.mm.ss") Backup $vm OK ($duration min, $FolderSize Gb)" -Body "Backup $vm OK ($duration min), VM Size - $FolderSize Gb" –SmtpServer $mailserver -Encoding 'UTF8'
            write "$(get-date -format "dd.MM.yy.HH.mm.ss") 'экспорт $vm в $fullpath OK" | out-file $LOG -append
        }else{
-           Send-MailMessage -From 'it-events@kubstu.ru' -To 'it-events@kubstu.ru' -Subject "$(get-date -format "dd.MM.yy.HH.mm.ss") Backup $vm ERROr" -Body "Backup $vm ERROR" –SmtpServer 'mail.kubstu.ru' -Encoding 'UTF8'
+           Send-MailMessage -From $from -To $to -Subject "$(get-date -format "dd.MM.yy.HH.mm.ss") Backup $vm ERROr" -Body "Backup $vm ERROR" –SmtpServer $mailserver -Encoding 'UTF8'
            write "$(get-date -format "dd.MM.yy.HH.mm.ss") 'экспорт $vm в $fullpath ERRor" | out-file $LOG -append
        }
 
