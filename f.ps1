@@ -26,56 +26,51 @@ write "$(get-date -format "dd.MM.yy.HH.mm.ss") необходимое место дл€ бекапа: $Mi
 }
 
 
-function DelOldFolders ($Paths, $K, $LOG){
-write "$(get-date -format "dd.MM.yy.HH.mm.ss") FUNCTIONNNNNNNNNNNNNNNNN2!!!!!!!!!!!!" | out-file  $LOG -append
-    $folder=$Paths
+function DelOldFolders ($Paths, $R, $LOG){
+
+   #проверка есть ли папка для бекапов
+   if (-not (Test-Path -Path $Paths)) {
+    throw "$Paths not found"
+}
+   #количество подпапок в папке
+   $foldersCount= Get-ChildItem $Paths | Measure-Object | %{$_.Count}
+   write "количество бекапов  - $foldersCount !!!!!!!!!!!!!!!!!!!!!!!!"
+   #если количество подпапок меньше чем необходимое количество бекапов то выоходим из цикла - удалять ничего не надо
+   if($foldersCount -le $R){
+       write "количество бекапов мало - $foldersCount - выходим!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+       return
+   }
+   else{
+  # пока количество папок не равно необходимому количеству бекапов 
+   While ($foldersCount -ne $R){
+    #список папок
+    $folders = dir $Paths
+    write "colpap $foldersCount"
+    #переменная для хранения даты
     $datetime = get-date
-    $colpap = dir $folder
-    $q=0
-    $R=$K #кол-во папок - бекапов
-While ($q -ne $R){
-#обнул€ем переменную в которую записываем количество подпапок в папке дл€ бекапв
-$q=0
-$colpap = dir $folder
-$datetime = get-date
-    foreach ($p in $colpap ){
-    #удал€ем тестовый файл
-    if ($p.name -eq "testfile.txt"){
-        cd $folder
-        Write "”дал€ю $p   дата $datetime"
-        rm $p -recurse
-        } else {
-        #находим папку с самой старой датой
-        if ($datetime -gt $p.LastWriteTime){
-            $datetime= $p.LastWriteTime
-            Write $datetime
-        }
-        #считаем количество подпапок
-        $q=$q+1
-        }
-
-    }
-Write "$q !!!!"
-Write "$R !!!!"
-#если количество папок в папке дл€ бекапов меньше или равно требуемого количества бекапов то выходим из цикла
-if ($q -le $R){break}
-    $colpap = dir $folder
-    foreach ($s in $colpap ){
-        if ($q -gt $R){
-            if ($datetime -eq $s.LastWriteTime){
-            cd $folder
-            Write "”дал€ю $s   дата $datetime"
-            rm $s -recurse
+     #находим папку с самой старой датой
+     foreach ($p in $folders ){
+            if ($datetime -gt $p.LastWriteTime){
+                $datetime= $p.LastWriteTime
+                Write $datetime
             }
-        }
-    }
+            
+     }
+     #ищем самую старую папку и удаляем
+    
+     foreach ($s in $folders ){
+                if ($datetime -eq $s.LastWriteTime){
+                    cd $Paths
+                    Write "Удаляю $s   дата $datetime ___________________________________"
+                    Write "Удаляю $s   дата $datetime ___________________________________" | out-file  $LOG -append
+                    rm $s -recurse
+                }
+            }
+     #обновляем значение переменной - количество подпапок      
+     $foldersCount= Get-ChildItem $Paths | Measure-Object | %{$_.Count}
+     } 
 }
-
-
-write "$(get-date -format "dd.MM.yy.HH.mm.ss") FUNCTIONNNNNNNNNNNNNNNNN2!!!!!!!!!!!!" | out-file  $LOG -append
-
-
-}
+   }
 
 function SetVMStatus ($vmoff, $vm, $LOG){
         $vmstate= get-vm $vm
@@ -135,7 +130,7 @@ if ($cn.name -eq $VmName){
        write "$(get-date -format "dd.MM.yy.HH.mm.ss") $VmName располагаетс€ локально" | out-file $LOG -append
        if ($proverkaPaths= 1){
             GetFreeSpace -Paths $Paths -VmName $VmName -K $K -LOG $LOG
-            DelOldFolders -Paths $Paths -K $K -LOG $LOG
+            DelOldFolders -Paths $Paths -R $K -LOG $LOG
        }
        
 	try {
@@ -187,7 +182,7 @@ if ($cn.name -eq $VmName){
                 if ($proverkaPathss= 1){
                      #проверка свободного места
                      GetFreeSpace -Paths $Pathss -VmName $vm -K $K -LOG $LOGs
-                     DelOldFolders -Paths $Pathss -K $K -LOG $LOGs
+                     DelOldFolders -Paths $Pathss -R $K -LOG $LOGs
                 }
 
 	            try {
@@ -220,7 +215,7 @@ else {
 
     if ($proverkaPaths= 1){
                 GetFreeSpace -Paths $Paths -VmName $VmName -K $K -LOG $LOG
-                DelOldFolders -Paths $Paths -K $K -LOG $LOG
+                DelOldFolders -Paths $Paths -R $K -LOG $LOG
            }
        
 	try {
